@@ -26,11 +26,18 @@ export function Home() {
   const [data, setData] = useState<LoginListDataProps>([]);
 
   async function loadData() {
-    const response = await AsyncStorage.getItem('@passmanager:logins');
-    const keys = response ? JSON.parse(response) : [];
+    try {
+      const response = await AsyncStorage.getItem('@passmanager:logins');
 
-    setSearchListData(keys);
-    setData(keys);
+      if(!response) return
+
+      const logins: LoginListDataProps = JSON.parse(response)
+
+      setData(logins)
+      setSearchListData(logins)
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   useEffect(() => {
@@ -42,17 +49,11 @@ export function Home() {
   }, []));
 
   function handleFilterLoginData(search: string) {
-    if (search) {
-      const filteredDataSource = data.filter((item) => {
-        const itemData = `${item.title.toUpperCase()}`;
-        const textData = search.toUpperCase();
-
-        return itemData.indexOf(textData) > -1;
-      });
-      setSearchListData(filteredDataSource);
-    }else {
-      setSearchListData(data);
-    }
+    setSearchListData(oldState =>
+        oldState.filter(
+            pass => pass.title.includes(search)
+        )
+    )
   }
 
   return (
